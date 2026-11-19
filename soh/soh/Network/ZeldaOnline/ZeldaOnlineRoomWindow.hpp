@@ -254,8 +254,9 @@ class ZeldaOnlineRoomWindow : public Ship::GuiWindow {
 
             if (ImGui::Checkbox("Private Dungeons", &m_partySettings.privateDungeons)) {
                 if (!m_partySettings.privateDungeons) {
+                    // Only Extra Enemies depends on Private Dungeons. The Health
+                    // Multiplier is independent and stays as the admin set it.
                     m_partySettings.extraEnemies = false;
-                    m_partySettings.healthMultiplier = false;
                 }
             }
 
@@ -308,9 +309,6 @@ class ZeldaOnlineRoomWindow : public Ship::GuiWindow {
 
             ImGui::Spacing();
 
-            if (!m_partySettings.privateDungeons)
-                ImGui::BeginDisabled();
-
             const float rowHeight = ImGui::GetFrameHeightWithSpacing();
             const float padY = ImGui::GetStyle().WindowPadding.y * 2.0f;
             const float labelHeight = ImGui::GetTextLineHeightWithSpacing();
@@ -322,10 +320,14 @@ class ZeldaOnlineRoomWindow : public Ship::GuiWindow {
             ImGui::TextUnformatted("Dungeon Settings");
 
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                ImGui::SetTooltip("Requires Private Dungeons.");
+                ImGui::SetTooltip("Extra Enemies requires Private Dungeons.\n"
+                                  "The Health Multiplier works in any party, in dungeon and boss scenes.");
 
             if (ImGui::BeginChild("##zo_party_modifiers", ImVec2(0.0f, modifierHeight), true)) {
                 ImGui::TextUnformatted("Extra Enemies");
+
+                if (!m_partySettings.privateDungeons)
+                    ImGui::BeginDisabled();
 
                 if (ImGui::BeginChild("##zo_extra_enemies", ImVec2(0.0f, enemyHeight), true)) {
                     ImGui::Checkbox("Enabled", &m_partySettings.extraEnemies);
@@ -345,6 +347,9 @@ class ZeldaOnlineRoomWindow : public Ship::GuiWindow {
                 }
 
                 ImGui::EndChild();
+
+                if (!m_partySettings.privateDungeons)
+                    ImGui::EndDisabled();
 
                 ImGui::Spacing();
                 ImGui::TextUnformatted("Health Multiplier");
@@ -378,9 +383,6 @@ class ZeldaOnlineRoomWindow : public Ship::GuiWindow {
             }
 
             ImGui::EndChild();
-
-            if (!m_partySettings.privateDungeons)
-                ImGui::EndDisabled();
 
             if (!m_partyAdmin)
                 ImGui::EndDisabled();

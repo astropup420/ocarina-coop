@@ -1918,12 +1918,7 @@ void ZeldaOnlineClient::UpdateAppearance() {
     }
 
     ByteStream blob;
-    // 2 = unknown: title screen, file select, credits or no save loaded. The title demo runs adult Link,
-    // so reporting LINK_IS_ADULT there would count as an adult vote in the party era (the server ignores >= 2).
-    uint8_t age = 2;
-    if (gPlayState != nullptr && gSaveContext.fileNum != 0xFF && gSaveContext.gameMode == GAMEMODE_NORMAL)
-        age = LINK_IS_ADULT ? 0u : 1u;
-    blob << PackedUInt1(age);
+    blob << PackedUInt1(LINK_IS_ADULT ? 0u : 1u);
     blob << PackedUInt1((uint8_t)(m_skinRef.length())) << m_skinRef;
     blob << PackedUInt1((uint8_t)m_nickName.length()) << m_nickName;
 
@@ -3104,7 +3099,10 @@ int ZeldaOnlineClient::RollNeighbourCount(f32 weight) const {
 }
 
 float ZeldaOnlineClient::RollHealthMultiplier(f32 weight, f32 settingWeight) const {
-    if (m_partyID == 0 || !m_partySettings.privateDungeons || !m_partySettings.healthMultiplier)
+    // Co-op HP scaling: decoupled from Private Dungeons (unlike Extra Enemies,
+    // which spawns extra actors into a private instance and does need it).
+    // Story Co-op parties get scaling too, as long as the multiplier is on.
+    if (m_partyID == 0 || !m_partySettings.healthMultiplier)
         return 1.0f;
 
     if (!IsPartyScene(gPlayState->sceneNum))
